@@ -3,14 +3,12 @@ using Unity.Transforms;
 using Unity.Mathematics;
 using Unity.Jobs;
 using Unity.Collections;
-//using UnityEngine;
-//using UnityEngine.Rendering;
 using Unity.Profiling;
-//using System;
 using Unity.Entities;
 using Unity.Jobs.LowLevel.Unsafe;
-//using System.Threading;
+using UnityEditor;
 
+[AlwaysUpdateSystem]
 public class EntitySpawnerSystem : SystemBase
 {
 
@@ -54,6 +52,9 @@ public class EntitySpawnerSystem : SystemBase
 
 
         lastSpawnTime = 0;
+
+
+        
     }
 
     protected override void OnDestroy()
@@ -70,6 +71,10 @@ public class EntitySpawnerSystem : SystemBase
 
     protected override void OnUpdate()
     {
+
+        float gravity = 98f;
+        float terminal = 60;
+
 
         // Command Buffer is needed to destroy entities.
         EndSimulationEntityCommandBufferSystem escbs = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
@@ -99,9 +104,11 @@ public class EntitySpawnerSystem : SystemBase
          
             spawnTimer = .001f;
 
+            EntityManager.AddComponentData<PrefabEntityExtraData>(PrefabEntitiesV2.prefabEntity,
+                        new PrefabEntityExtraData { ttl = 0f,
+                        velocity = new float3(0,0,0)});
+            
 
-            EntityManager.AddComponentData<ageComponent>(PrefabEntitiesV2.prefabEntity,
-                        new ageComponent { age = 0f });
 
 
             // Method that Instantiates all Entities first then sets a random location for them
@@ -126,7 +133,7 @@ public class EntitySpawnerSystem : SystemBase
 
                 // The following is pretty fast, but still 0.05ms for 5000 new entities
                 var nativeRand = rArray;
-                Entities.ForEach((int nativeThreadIndex, ref Translation translation) =>
+                Entities.ForEach((int nativeThreadIndex, ref Translation translation, ref PrefabEntityExtraData extraData) =>
                 {
 
                     // Using some trickery to use the Unity.Mathematics.Random with Burst
@@ -135,7 +142,20 @@ public class EntitySpawnerSystem : SystemBase
                     if (translation.Value.x == 1000 && translation.Value.y == 0 && translation.Value.z == 0)
                     {
 
-                        translation.Value = new float3(rnd.NextFloat(-100f, 100f), rnd.NextFloat(-100f, 100f), rnd.NextFloat(200f, 400f));
+                        float x = rnd.NextFloat(-100, 100);
+                        float y = rnd.NextFloat(50f, 100f);
+                        float z = rnd.NextFloat(-100, 100);
+
+                        extraData.velocity.x = x * 0.1f;
+                        extraData.velocity.y = (y - 50f) * 0.5f;
+                        extraData.velocity.z = z * 0.1f;
+
+                        translation.Value.x = x;
+                        translation.Value.y = y;
+                        translation.Value.z = z + 300;
+
+                        extraData.ttl = ttl + rnd.NextFloat(0, 1f);
+
                     }
                     nativeRand[nativeThreadIndex] = rnd;
 
@@ -173,6 +193,11 @@ public class EntitySpawnerSystem : SystemBase
                     marker5.Begin();
                     EntityManager.SetComponentData(entityArray[i],
                         new Translation { Value = new float3(random.NextFloat(-100f, 100f), random.NextFloat(-100f, 100f), random.NextFloat(200f, 400f)) });
+
+                    EntityManager.SetComponentData(entityArray[i],
+                        new PrefabEntityExtraData { ttl = ttl });
+
+
                     marker5.End();
 
 
@@ -217,9 +242,11 @@ public class EntitySpawnerSystem : SystemBase
 
 
         // this might be bad performing but anyways, add time to each of the entities and if they are over 10 seconds old then destroy them
-        Entities.ForEach((ref Translation translation) =>
+        Entities.ForEach((ref Translation translation, ref PrefabEntityExtraData extraData) =>
         {
-            translation.Value.y = translation.Value.y + currTime * -50;
+            extraData.velocity.y = extraData.velocity.y - gravity * currTime; 
+
+            translation.Value = translation.Value + currTime * extraData.velocity;
 
         }).ScheduleParallel();
 
@@ -230,13 +257,13 @@ public class EntitySpawnerSystem : SystemBase
 
         // this might be bad performing but anyways, add time to each of the entities and if they are over 10 seconds old then destroy them
         // Requires the EntityCommandBuffer to destroy entities.
-        Entities.ForEach((Entity entity, int entityInQueryIndex, ref ageComponent ageComp) =>
+        Entities.ForEach((Entity entity, int entityInQueryIndex, ref PrefabEntityExtraData extraData) =>
         {
 
 
-            ageComp.age += currTime;
+            extraData.ttl -= currTime;
 
-            if (ageComp.age > ttl)
+            if (extraData.ttl < 0)
             {
                 buf.DestroyEntity(entityInQueryIndex, entity);
             }
@@ -245,14 +272,15 @@ public class EntitySpawnerSystem : SystemBase
 
         // Add dependency
         escbs.AddJobHandleForProducer(this.Dependency);
-
+        
     }
 
 
     // Simple Struct to add to the prefab for aging and ttl checks.
-    public struct ageComponent : IComponentData
+    public struct PrefabEntityExtraData : IComponentData
     {
-        public float age;
+        public float ttl;
+        public float3 velocity;
     }
 
 }

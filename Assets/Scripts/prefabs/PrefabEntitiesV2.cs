@@ -15,6 +15,7 @@ public class PrefabEntitiesV2 : MonoBehaviour, IDeclareReferencedPrefabs, IConve
     {
         Entity prefabEntity = conversionSystem.GetPrimaryEntity(prefabGameObject);
         PrefabEntitiesV2.prefabEntity = prefabEntity;
+        
     }
 
 

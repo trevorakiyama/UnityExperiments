@@ -10,7 +10,12 @@ public class Settings : MonoBehaviour
     public int method;
     public int itemCount;
     public float ttl;
+    [Range(0f, 100000f)]
     public float spawnRate;
+
+    public UnityEngine.UI.Slider slider;
+    public UnityEngine.UI.Text text;
+
 
     static Settings instance;
 
@@ -24,6 +29,9 @@ public class Settings : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        spawnRate = slider.value * slider.value;
+        text.text = spawnRate.ToString();
         
     }
 
@@ -48,6 +56,7 @@ public class Settings : MonoBehaviour
         return Settings.instance.ttl;
     }
 
+    
     public static float getSpawnRate()
     {
         return Settings.instance.spawnRate;
