@@ -7,6 +7,8 @@ using Unity.Profiling;
 using Unity.Entities;
 using Unity.Jobs.LowLevel.Unsafe;
 using UnityEditor;
+using Boo.Lang;
+using UnityEditor.Build.Pipeline;
 
 [AlwaysUpdateSystem]
 public class EntitySpawnerSystem : SystemBase
@@ -30,6 +32,8 @@ public class EntitySpawnerSystem : SystemBase
     ProfilerMarker marker5 = new ProfilerMarker("m5");
     ProfilerMarker marker6 = new ProfilerMarker("m6");
     ProfilerMarker marker7 = new ProfilerMarker("m7");
+    ProfilerMarker marker8 = new ProfilerMarker("m8");
+    ProfilerMarker marker9 = new ProfilerMarker("m9");
 
     ProfilerMarker marker21 = new ProfilerMarker("m21");
     ProfilerMarker marker22 = new ProfilerMarker("m22");
@@ -121,10 +125,11 @@ public class EntitySpawnerSystem : SystemBase
 
                 marker3.Begin();
 
-                NativeArray<Entity> entityArray = new NativeArray<Entity>(toSpawn, Allocator.TempJob);
+                //NativeArray<Entity> entityArray = new NativeArray<Entity>(toSpawn, Allocator.TempJob);
 
 
-                EntityManager.Instantiate(PrefabEntitiesV2.prefabEntity, entityArray);
+                NativeArray<Entity> entityArray = EntityManager.Instantiate(PrefabEntitiesV2.prefabEntity, toSpawn, Allocator.Temp);
+                
 
                 marker3.End();
 
@@ -255,25 +260,106 @@ public class EntitySpawnerSystem : SystemBase
 
         marker7.Begin();
 
-        // this might be bad performing but anyways, add time to each of the entities and if they are over 10 seconds old then destroy them
-        // Requires the EntityCommandBuffer to destroy entities.
-        Entities.ForEach((Entity entity, int entityInQueryIndex, ref PrefabEntityExtraData extraData) =>
+
+
+        if (Settings.getMethodType() != 4)
         {
-
-
-            extraData.ttl -= currTime;
-
-            if (extraData.ttl < 0)
+            // this might be bad performing but anyways, add time to each of the entities and if they are over 10 seconds old then destroy them
+            // Requires the EntityCommandBuffer to destroy entities.
+            Entities.ForEach((Entity entity, int entityInQueryIndex, ref PrefabEntityExtraData extraData) =>
             {
-                buf.DestroyEntity(entityInQueryIndex, entity);
-            }
-        }).Schedule();
-        marker7.End();
+                extraData.ttl -= currTime;
 
-        // Add dependency
-        escbs.AddJobHandleForProducer(this.Dependency);
+                if (extraData.ttl < 0)
+                {
+                    buf.DestroyEntity(entityInQueryIndex, entity);
+
+                }
+            }).Schedule();
+
+
+
+
+            // Add dependency
+
+            escbs.AddJobHandleForProducer(this.Dependency);
+
+        }
+        else
+        {
+            // get the old Entities with a job
+            // Parallel does not like Lists
+            // This performs MUCH worse than the EntityCommandBuffer 100ms vs 5 ms for destroying thousands of entitis
+
+
+            //NativeList<Entity> expired = new NativeList<Entity>(0, Allocator.TempJob);
+            NativeQueue<Entity> queue = new NativeQueue<Entity>(Allocator.TempJob);
+
+            NativeQueue<Entity>.ParallelWriter queuep = queue.AsParallelWriter();
+
+
+            NativeList<Entity> expired = new NativeList<Entity>(0, Allocator.TempJob);
+
+
+
+
+
+            JobHandle jobHandle = Entities.ForEach((Entity entity, int entityInQueryIndex, ref PrefabEntityExtraData extraData) =>
+            {
+                extraData.ttl -= currTime;
+
+                if (extraData.ttl < 0)
+                {
+                    queuep.Enqueue(entity);
+                }
+            }).ScheduleParallel(Dependency);
+
+
+            jobHandle.Complete();
+
+            FindExpiredEntities myJob = new FindExpiredEntities()
+            {
+                input = queue,
+                output = expired
+            };
+
+            myJob.Schedule().Complete();
+
+
+            marker8.Begin();
+
+            EntityManager.DestroyEntity(expired.AsArray());
+
+            expired.Dispose();
+            queue.Dispose();
+
+
+            marker8.End();
+
+
+
+        }
+        marker7.End();
         
     }
+
+    public struct FindExpiredEntities : IJob
+    {
+        public NativeQueue<Entity> input;
+        public NativeList<Entity> output;
+
+        void IJob.Execute()
+        {
+            //NativeList<Entity> tempList = new NativeList<Entity>(256, Allocator.Temp);
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                output.Add(input.Dequeue());
+            }
+        }
+    }
+
+
 
 
     // Simple Struct to add to the prefab for aging and ttl checks.
@@ -281,6 +367,7 @@ public class EntitySpawnerSystem : SystemBase
     {
         public float ttl;
         public float3 velocity;
+        public bool expired;
     }
 
 }
