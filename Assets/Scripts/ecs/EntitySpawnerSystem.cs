@@ -315,7 +315,7 @@ public class EntitySpawnerSystem : SystemBase
             }).ScheduleParallel(Dependency);
 
 
-            jobHandle.Complete();
+            //jobHandle.Complete();
 
             FindExpiredEntities myJob = new FindExpiredEntities()
             {
@@ -323,7 +323,7 @@ public class EntitySpawnerSystem : SystemBase
                 output = expired
             };
 
-            myJob.Schedule().Complete();
+            myJob.Schedule(jobHandle).Complete();
 
 
             marker8.Begin();
