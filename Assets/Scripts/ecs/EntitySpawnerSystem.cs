@@ -9,6 +9,7 @@ using Unity.Jobs.LowLevel.Unsafe;
 using UnityEditor;
 using Boo.Lang;
 using UnityEditor.Build.Pipeline;
+using Unity.Burst;
 
 [AlwaysUpdateSystem]
 public class EntitySpawnerSystem : SystemBase
@@ -42,6 +43,7 @@ public class EntitySpawnerSystem : SystemBase
 
 
 
+
     protected override void OnCreate()
     {
         base.OnCreate();
@@ -56,8 +58,6 @@ public class EntitySpawnerSystem : SystemBase
 
 
         lastSpawnTime = 0;
-
-
         
     }
 
@@ -264,8 +264,7 @@ public class EntitySpawnerSystem : SystemBase
 
         if (Settings.getMethodType() != 4)
         {
-            // this might be bad performing but anyways, add time to each of the entities and if they are over 10 seconds old then destroy them
-            // Requires the EntityCommandBuffer to destroy entities.
+            // Try the EntityCommandBuffer to destroy entities.
             Entities.ForEach((Entity entity, int entityInQueryIndex, ref PrefabEntityExtraData extraData) =>
             {
                 extraData.ttl -= currTime;
@@ -298,11 +297,11 @@ public class EntitySpawnerSystem : SystemBase
             NativeQueue<Entity>.ParallelWriter queuep = queue.AsParallelWriter();
 
 
+            //NativeArray<Entity> expired = new NativeArray<Entity>(0, Allocator.TempJob);
+
             NativeList<Entity> expired = new NativeList<Entity>(0, Allocator.TempJob);
 
-
-
-
+            marker8.Begin();
 
             JobHandle jobHandle = Entities.ForEach((Entity entity, int entityInQueryIndex, ref PrefabEntityExtraData extraData) =>
             {
@@ -315,6 +314,8 @@ public class EntitySpawnerSystem : SystemBase
             }).ScheduleParallel(Dependency);
 
 
+
+            
             //jobHandle.Complete();
 
             FindExpiredEntities myJob = new FindExpiredEntities()
@@ -326,15 +327,22 @@ public class EntitySpawnerSystem : SystemBase
             myJob.Schedule(jobHandle).Complete();
 
 
-            marker8.Begin();
+            
 
-            EntityManager.DestroyEntity(expired.AsArray());
+
+            var output = myJob.output.AsArray();
+           
+
+
+            EntityManager.DestroyEntity(output);
+
+            marker8.End();
 
             expired.Dispose();
             queue.Dispose();
 
 
-            marker8.End();
+            
 
 
 
@@ -343,6 +351,7 @@ public class EntitySpawnerSystem : SystemBase
         
     }
 
+    [BurstCompile]
     public struct FindExpiredEntities : IJob
     {
         public NativeQueue<Entity> input;
@@ -350,12 +359,14 @@ public class EntitySpawnerSystem : SystemBase
 
         void IJob.Execute()
         {
-            //NativeList<Entity> tempList = new NativeList<Entity>(256, Allocator.Temp);
+            //NativeList<Entity> tempList = new NativeList<Entity>(100, Allocator.Temp);
 
             for (int i = 0; i < input.Count; i++)
             {
                 output.Add(input.Dequeue());
             }
+
+            //output.CopyFrom(tempList);
         }
     }
 
