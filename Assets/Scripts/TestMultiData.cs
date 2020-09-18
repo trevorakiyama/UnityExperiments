@@ -93,31 +93,6 @@ public class TestMultiData : MonoBehaviour
 
         marker3.End();
 
-        NativeArray<int> val;
-        if (map.TryGetValue(2, out val))
-        {
-
-
-            //testPtrs(val.GetUnsafePtr<int>());
-
-            //testPtrInJob(val.GetUnsafePtr<int>());
-
-
-
-
-
-            //void* a = val.GetUnsafePtr<int>();
-
-            //ulong lp = (ulong)a;
-
-            //NativeArray<ulong> ptrs = new NativeArray<ulong>(1, Allocator.TempJob);
-            //ptrs[0] = lp;
-            //testPtrInJob2(ptrs);
-
-            //ptrs.Dispose();
-
-            
-        }
     }
 
 
@@ -276,21 +251,8 @@ public class TestMultiData : MonoBehaviour
     public void LateUpdate()
     {
 
-        //if (pendingJob)
-        //{
-
-        // If possible this should either go into a yeild pattern or complete in lateUpdate
-
-
         // I know that the handle should be executing every frame
-
-        //while (handle.IsCompleted() == false)
-        //{
-        //    yield
-
-        //}
-        //{
-
+        // because of the way I've set up the tests
         if (pendingJob)
         {
             handle.Complete();
@@ -300,7 +262,6 @@ public class TestMultiData : MonoBehaviour
             if (sum == 0)
             {
                 Debug.Log("SUM OF ZERO");
-
             }
 
 
@@ -309,17 +270,10 @@ public class TestMultiData : MonoBehaviour
             _subSums.Dispose();
             _totalSum.Dispose();
 
+            // check the return value
             Debug.Log($"LateComplete Sum {sum}");
-
-
-
-
             pendingJob = false;
-            //}
-            //}
-
-
-            // return sum;
+            
         }
 
     }
@@ -426,8 +380,6 @@ public class TestMultiData : MonoBehaviour
         NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, AtomicSafetyHandle.Create());
 
         Debug.LogFormat("VALUE of Native Array {0}", array[1]);
-
-        //array.Dispose();
 
     }
 
