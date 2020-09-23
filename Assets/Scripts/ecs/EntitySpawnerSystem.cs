@@ -7,9 +7,8 @@ using Unity.Profiling;
 using Unity.Entities;
 using Unity.Jobs.LowLevel.Unsafe;
 using UnityEditor;
-using Boo.Lang;
-using UnityEditor.Build.Pipeline;
 using Unity.Burst;
+using UnityEngine;
 
 [AlwaysUpdateSystem]
 public class EntitySpawnerSystem : SystemBase
@@ -58,6 +57,11 @@ public class EntitySpawnerSystem : SystemBase
 
 
         lastSpawnTime = 0;
+
+
+        Debug.Log("Spawner OnCreate");
+
+        
         
     }
 
@@ -76,7 +80,7 @@ public class EntitySpawnerSystem : SystemBase
     protected override void OnUpdate()
     {
 
-        float gravity = 98f;
+        float gravity = 9.8f;
         float terminal = 60;
 
 

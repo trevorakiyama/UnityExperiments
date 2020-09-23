@@ -57,7 +57,7 @@ public class TestMultiData : MonoBehaviour
         
     }
 
-    [ExecuteAlways]
+
     // Update is called once per frame
     void Update()
     {
@@ -92,7 +92,6 @@ public class TestMultiData : MonoBehaviour
         handle = TestJobWithMultiNativeArrayDeferredCompletion(map);
 
         marker3.End();
-
     }
 
 
@@ -320,10 +319,6 @@ public class TestMultiData : MonoBehaviour
 
 
 
-
-
-
-
     public unsafe void testPtrInJob2(NativeArray<ulong> pointers)
     {
 
@@ -369,18 +364,6 @@ public class TestMultiData : MonoBehaviour
 
 
         arr.Dispose();
-    }
-
-
-    public unsafe void testPtrs( void* ptr)
-    {
-
-
-        NativeArray<int> array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(ptr, 4, Allocator.None);
-        NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, AtomicSafetyHandle.Create());
-
-        Debug.LogFormat("VALUE of Native Array {0}", array[1]);
-
     }
 
 

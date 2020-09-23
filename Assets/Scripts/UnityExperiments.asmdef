@@ -1,0 +1,20 @@
+{
+    "name": "UnityExperiments",
+    "references": [
+        "Unity.Entities",
+        "Unity.Mathematics",
+        "Unity.Burst",
+        "Unity.Entities.Hybrid",
+        "Unity.Collections",
+        "Unity.Transforms"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
