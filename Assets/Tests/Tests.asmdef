@@ -4,7 +4,10 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "UnityExperiments",
-        "SeparateAssembly"
+        "Unity.Burst",
+        "Unity.Collections",
+        "Unity.Jobs",
+        "Unity.Entities"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

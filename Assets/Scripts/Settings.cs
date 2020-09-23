@@ -89,7 +89,7 @@ public class Settings : MonoBehaviour
 
     public static float getTTL()
     {
-        Debug.Log("Calling Settings getTTL");
+        //Debug.Log("Calling Settings getTTL");
 
 
         if (Settings.instance == null)
