@@ -26,6 +26,8 @@ public class CalculateMultiSumInUpdate : ICalculate
 
         }
 
+
+        
         JobHandle handle1 = new CalculateMultiJob
         {
             longPointers = pointers,
@@ -34,6 +36,7 @@ public class CalculateMultiSumInUpdate : ICalculate
         }.Schedule(map.Count, 1);
 
 
+        
         JobHandle handle2 = new sumUpArrayVals
         {
             subSums = subSums,
@@ -43,9 +46,12 @@ public class CalculateMultiSumInUpdate : ICalculate
 
         // If possible this should either go into a yeild pattern or complete in lateUpdate
 
+        
         handle2.Complete();
 
+
         long sum = totalSum[0];
+
 
         pointers.Dispose();
         len.Dispose();

@@ -28,6 +28,8 @@ public class TestMultiData : MonoBehaviour
 
         //calculateMethod1 = GetComponent<ICalculate>();
         calculateMethod1 = new CalculateMultiSumInUpdate();
+
+        //calculateMethod1 = new CalculateWithSequentialJobs();
     }
 
 
@@ -53,6 +55,8 @@ public class TestMultiData : MonoBehaviour
     void Update()
     {
 
+
+
         Stopwatch stopwatch = Stopwatch.StartNew();
 
         long sum = 0;
@@ -68,7 +72,7 @@ public class TestMultiData : MonoBehaviour
         markerCalculate.End();
 
 
-        Debug.Log($"{calculateMethod1.getDescription()} : Sum at Update = {sum}");
+        //Debug.Log($"{calculateMethod1.getDescription()} : Sum at Update = {sum}");
 
 
 
@@ -83,7 +87,7 @@ public class TestMultiData : MonoBehaviour
         long sum = calculateMethod1.CalculateLateUpdate();
         markerLateUpdate.End();
 
-        Debug.Log($"{calculateMethod1.getDescription()} : Sum at LateUpdate = {sum}");
+        //Debug.Log($"{calculateMethod1.getDescription()} : Sum at LateUpdate = {sum}");
 
 
     }

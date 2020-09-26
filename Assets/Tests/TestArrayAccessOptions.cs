@@ -82,9 +82,9 @@ namespace Tests
             int arrayNum = 1000;
 
 
-            ICalculate[] calcs = new ICalculate[4]
+            ICalculate[] calcs = new ICalculate[3]
             {
-                new CalculateSumNoJobs(),  // Not Using Jobs is brutally slow
+                //new CalculateSumNoJobs(),  // Not Using Jobs is brutally slow
                 new CalculateSumWithSequentialPtrJobs(),  // this is currently broken and needs to be fixed
                 new CalculateWithSequentialJobs(),
                 new CalculateMultiSumInUpdate()

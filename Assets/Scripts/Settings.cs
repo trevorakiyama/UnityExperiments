@@ -9,6 +9,7 @@ public class Settings : MonoBehaviour
 
     public Boolean useNew = false;
     public int method = 0;
+    public int destroyMode = 0;
     public int itemCount = 0;
     public float ttl = 1;
     [Range(0f, 100000f)]
@@ -38,8 +39,6 @@ public class Settings : MonoBehaviour
     void Update()
     {
 
-
-        Debug.Log("Calling Settings getUpdate");
         spawnRate = slider.value * slider.value;
         text.text = spawnRate.ToString();
         
@@ -55,64 +54,6 @@ public class Settings : MonoBehaviour
 #else
         Application.Quit();
 #endif
-
-    }
-
-
-    public static Boolean isUseNew() {
-        if (Settings.instance == null)
-        {
-            return false;
-        }
-        return Settings.instance.useNew;
-    }
-
-    public static int getMethodType()
-    {
-        if (Settings.instance == null)
-        {
-            return 1;
-        }
-        return Settings.instance.method;
-    }
-
-
-    public static int getItemCount()
-    {
-
-        if (Settings.instance == null)
-        {
-            return 0;
-        }
-        return Settings.instance.itemCount;
-    }
-
-    public static float getTTL()
-    {
-        //Debug.Log("Calling Settings getTTL");
-
-
-        if (Settings.instance == null)
-        {
-            return 1;
-        }
-
-        return Settings.instance.ttl;
-
-    }
-
-    
-    public static float getSpawnRate()
-    {
-
-        if (Settings.instance == null)
-        {
-            return 0;
-        }
-
-
-
-        return Settings.instance.spawnRate;
 
     }
 

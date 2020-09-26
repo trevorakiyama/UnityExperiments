@@ -55,7 +55,7 @@ public class CalculateSumWithDeferredCompletion : ICalculate
             longPointers = _pointers,
             arrayLengths = _lens,
             subSums = _subSums  // subsums will be the output passed to next job
-        }.Schedule(map.Count, 10);
+        }.Schedule(map.Count, 1);
 
 
         // Consolidate all the sub sums into one master sum and schedule
@@ -112,7 +112,7 @@ public class CalculateSumWithDeferredCompletion : ICalculate
     }
 }
 
-[BurstCompile]
+
 public unsafe struct CalculateMultiJob : IJobParallelFor
 {
 
@@ -124,14 +124,15 @@ public unsafe struct CalculateMultiJob : IJobParallelFor
     public void Execute(int index)
     {
 
-
+        
         // Convert a ulong to a void* since NativeArrays can't hold pointers
         void* ptr = (void*)longPointers[index];
 
         // Convert the pointer to back to a NativeArray for burst
         NativeArray<int> array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<int>(ptr, arrayLengths[index], Allocator.None);
-        NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, AtomicSafetyHandle.Create());
-      
+
+        var safetyHandle = AtomicSafetyHandle.Create();
+        NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, safetyHandle);
 
         long sum = 0;
         for (int i = 0; i < array.Length; i++)
@@ -140,6 +141,9 @@ public unsafe struct CalculateMultiJob : IJobParallelFor
         }
 
         subSums[index] = sum;
+
+        AtomicSafetyHandle.Release(safetyHandle);
+
     }
 }
 
