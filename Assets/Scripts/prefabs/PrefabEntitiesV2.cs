@@ -7,21 +7,28 @@ using UnityEngine;
 // Creating a pref using GameObjectConversionSystem
 public class PrefabEntitiesV2 : MonoBehaviour, IDeclareReferencedPrefabs, IConvertGameObjectToEntity
 {
-    public static Entity prefabEntity;
-    public GameObject prefabGameObject;
+    //public static Entity[] preFabEntities = new Entity[2];
+
+    public static Entity preFabEntity;
+
+
+    public GameObject prefabGameObject0;
+    public GameObject prefabGameObject1;
 
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
     {
-        Entity prefabEntity = conversionSystem.GetPrimaryEntity(prefabGameObject);
-        PrefabEntitiesV2.prefabEntity = prefabEntity;
-        
-    }
+        //PrefabEntitiesV2.preFabEntities[0] = conversionSystem.GetPrimaryEntity(prefabGameObject0);
+        //PrefabEntitiesV2.preFabEntities[1] = conversionSystem.GetPrimaryEntity(prefabGameObject1);
 
+
+        preFabEntity = conversionSystem.GetPrimaryEntity(prefabGameObject0);
+    }
 
 
     public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
     {
-        referencedPrefabs.Add(prefabGameObject);
+        referencedPrefabs.Add(prefabGameObject0);
+        //referencedPrefabs.Add(prefabGameObject1);
     }
 }
